@@ -1,16 +1,16 @@
 <?php
 namespace Wa72\HtmlPrettymin;
 
-use JSMin\JSMin;
-use tubalmartin\CssMin\Minifier as CSSmin;
+use JSMin\JSMin as JSMin;
+use tubalmartin\CssMin\Minifier as CSSMin;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * PrettyMin is a HTML minifier and code formatter that works directly on the DOM tree
  *
  */
-class PrettyMin
-{
+class PrettyMin {
+
     /**
      * @var \DOMDocument
      */
@@ -74,7 +74,7 @@ class PrettyMin
             $d = new \DOMDocument();
             $d->preserveWhiteSpace = false;
             $d->validateOnParse = true;
-            $d->loadHTML($html);
+            @$d->loadHTML($html);
         }
         $d->formatOutput = false;
         $d->normalizeDocument();
@@ -184,7 +184,7 @@ class PrettyMin
             $code = $element->nodeValue;
             $element->nodeValue = '';
             if (trim($code)) {
-                $min = new CSSmin();
+                $min = new CSSMin();
                 if (trim($code)) {
                     $code = trim($min->run($code));
                 }

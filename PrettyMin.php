@@ -1,18 +1,24 @@
 <?php
 namespace Wa72\HtmlPrettymin;
 
-use JSMin\JSMin as JSMin;
-use tubalmartin\CssMin\Minifier as CSSMin;
+
+/**
+ *
+ */
+use DOMDocument;
+use DOMElement;
+use MatthiasMullie\Minify\JS as JSMin;
+use MatthiasMullie\Minify\CSS as CSSMin;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+
 
 /**
  * PrettyMin is a HTML minifier and code formatter that works directly on the DOM tree
- *
  */
 class PrettyMin {
 
     /**
-     * @var \DOMDocument
+     * @var DOMDocument
      */
     protected $doc;
 
@@ -24,8 +30,7 @@ class PrettyMin {
     /**
      * @param array $options
      */
-    public function __construct(array $options = [])
-    {
+    public function __construct(array $options = []) {
         $resolver = new OptionsResolver();
         $this->configureOptions($resolver);
         $this->options = $resolver->resolve($options);
@@ -34,8 +39,7 @@ class PrettyMin {
     /**
      * @param OptionsResolver $resolver
      */
-    public function configureOptions(OptionsResolver $resolver)
-    {
+    public function configureOptions(OptionsResolver $resolver) {
         $resolver->setDefaults([
             'minify_js' => true,
             'minify_css' => true,
@@ -61,17 +65,17 @@ class PrettyMin {
      * @return PrettyMin
      */
     public function load($html) {
-        if ($html instanceof \DOMDocument) {
+        if ($html instanceof DOMDocument) {
             $d = $html;
-        } elseif ($html instanceof \DOMElement) {
+        } elseif ($html instanceof DOMElement) {
             $d = $html->ownerDocument;
         } elseif ($html instanceof \SplFileInfo) {
-            $d = new \DOMDocument();
+            $d = new DOMDocument();
             $d->preserveWhiteSpace = false;
             $d->validateOnParse = true;
             $d->loadHTMLFile($html->getPathname());
         } else {
-            $d = new \DOMDocument();
+            $d = new DOMDocument();
             $d->preserveWhiteSpace = false;
             $d->validateOnParse = true;
             @$d->loadHTML($html);
@@ -157,12 +161,12 @@ class PrettyMin {
         $elements = $this->doc->getElementsByTagName('script');
 
         $to_be_removed = [];
-        /** @var \DOMElement $element */
+        /** @var DOMElement $element */
         foreach ($elements as $element) {
             $code = $element->textContent;
             $element->nodeValue = '';
             if (trim($code)) {
-                $code = JSMin::minify($code);
+                $code = (new JSMin())->add($code)->minify();
                 $ct = $this->doc->createCDATASection($code);
                 $element->appendChild($ct);
             } elseif (!$element->hasAttribute('src')) {
@@ -175,18 +179,17 @@ class PrettyMin {
         }
     }
 
-    protected function minifyCss()
-    {
+    protected function minifyCss() {
         $elements = $this->doc->getElementsByTagName('style');
         $to_be_removed = [];
-        /** @var \DOMElement $element */
+        /** @var DOMElement $element */
         foreach ($elements as $element) {
             $code = $element->nodeValue;
             $element->nodeValue = '';
             if (trim($code)) {
                 $min = new CSSMin();
                 if (trim($code)) {
-                    $code = trim($min->run($code));
+                    $code = trim($min->add($code)->minify());
                 }
                 $ct = $this->doc->createCDATASection($code);
                 $element->appendChild($ct);
